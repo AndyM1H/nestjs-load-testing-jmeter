@@ -8,24 +8,21 @@ export const generateFakeUser = () => ({
   name: faker.person.fullName(),
 });
 
-export function* generateFakeUsersStream(totalItems, chunkSize) {
-  const chunk = [];
-  for (let i = 0; i < totalItems / chunkSize; i++) {
-    const chunk = generateFakeUsers(
-      totalItems < chunkSize ? totalItems : chunkSize,
-    );
-    yield chunk;
-  }
-
-  if (chunk.length > 0) {
-    yield chunk;
-  }
-}
-
-export async function* chunkStream(stream) {
-  let chunk;
-  for await (const item of stream) {
-    chunk = item;
-    yield chunk;
-  }
+export function fakeUsersGenerator(totalItems: number, chunkSize: number) {
+  return {
+    from: 1,
+    totalItems,
+    step: chunkSize,
+    *[Symbol.iterator]() {
+      for (
+        let value = this.from;
+        value <= this.totalItems;
+        value += this.step
+      ) {
+        yield generateFakeUsers(
+          this.totalItems < this.step ? this.totalItems : this.step,
+        );
+      }
+    },
+  };
 }
