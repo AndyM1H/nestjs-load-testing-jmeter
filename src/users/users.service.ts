@@ -2,9 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './users.schema';
-import { Readable } from 'stream';
-import { generateFakeUsersStream } from './utils/users.utils';
 import { UserDto } from './dtos/user.dto';
+import { fakeUsersGenerator } from './utils/users.utils';
 
 @Injectable()
 export class UsersService {
@@ -19,12 +18,9 @@ export class UsersService {
     try {
       const totalItems = limit;
       const chunkSize = 100000;
+      const usersGenerator = fakeUsersGenerator(totalItems, chunkSize);
 
-      const usersStream = Readable.from(
-        generateFakeUsersStream(totalItems, chunkSize),
-      );
-
-      for await (const chunk of usersStream) {
+      for (const chunk of usersGenerator) {
         await this.userModel.insertMany(chunk);
         console.log(`Inserted ${chunk.length} records.`);
       }
